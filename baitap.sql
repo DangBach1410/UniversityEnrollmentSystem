@@ -52,4 +52,92 @@ FROM users u
 LEFT JOIN orders o ON u.user_id = o.user_id
 WHERE o.order_id IS NULL;
 
--- EXPERT
+-- EXPERT LEVEL
+-- Câu 1: Tìm sản phẩm bán chạy nhất theo tổng số lượng đã bán
+SELECT product_id, SUM(quantity) AS total_sold
+FROM order_items
+GROUP BY product_id
+ORDER BY total_sold DESC
+LIMIT 1;
+
+-- Câu 2: Tìm đơn hàng có nhiều sản phẩm nhất
+SELECT order_id, SUM(quantity) AS total_quantity
+FROM order_items
+GROUP BY order_id
+ORDER BY total_quantity DESC
+LIMIT 1;
+
+-- Câu 3: Tính tổng doanh thu theo từng tháng
+SELECT 
+    DATE_FORMAT(order_date, '%Y-%m') AS month,
+    SUM(total_amount) AS total_revenue
+FROM orders
+GROUP BY month
+ORDER BY month;
+
+-- Câu 4: Tính số lần mua trung bình mỗi tháng của từng người dùng
+SELECT 
+    user_id,
+    COUNT(*) / COUNT(DISTINCT DATE_FORMAT(order_date, '%Y-%m')) AS avg_orders_per_month
+FROM orders
+GROUP BY user_id;
+
+-- Câu 5: Liệt kê người dùng và đơn hàng gần nhất của họ
+SELECT o.*
+FROM orders o
+INNER JOIN (
+    SELECT user_id, MAX(order_date) AS latest_order
+    FROM orders
+    GROUP BY user_id
+) latest ON o.user_id = latest.user_id AND o.order_date = latest.latest_order;
+
+-- Câu 6: Tìm đơn hàng có giá trị lớn nhất của mỗi người dùng (Window Function)
+SELECT *
+FROM (
+    SELECT o.*, 
+           RANK() OVER (PARTITION BY user_id ORDER BY total_amount DESC) AS rank
+    FROM orders o
+) ranked_orders
+WHERE rank = 1;
+
+-- Câu 7: Tìm các sản phẩm chưa từng được bán
+SELECT * 
+FROM products
+WHERE product_id NOT IN (
+    SELECT DISTINCT product_id FROM order_items
+);
+
+-- Câu 8: Mỗi người dùng đã mua bao nhiêu loại sản phẩm khác nhau
+SELECT o.user_id, COUNT(DISTINCT p.category) AS category_count
+FROM orders o
+JOIN order_items oi ON o.order_id = oi.order_id
+JOIN products p ON oi.product_id = p.product_id
+GROUP BY o.user_id;
+
+-- Câu 9: Sử dụng CTE để tìm những người dùng có tổng chi tiêu vượt 30 triệu
+WITH user_spending AS (
+    SELECT user_id, SUM(total_amount) AS total_spent
+    FROM orders
+    GROUP BY user_id
+)
+SELECT * 
+FROM user_spending
+WHERE total_spent > 30000000;
+
+-- Câu 10: Tổng doanh thu mỗi tháng và phần trăm tăng trưởng so với tháng trước
+WITH monthly_revenue AS (
+    SELECT 
+        DATE_FORMAT(order_date, '%Y-%m') AS month,
+        SUM(total_amount) AS revenue
+    FROM orders
+    GROUP BY month
+)
+SELECT 
+    month,
+    revenue,
+    LAG(revenue) OVER (ORDER BY month) AS previous_month_revenue,
+    ROUND(
+        (revenue - LAG(revenue) OVER (ORDER BY month)) / 
+        NULLIF(LAG(revenue) OVER (ORDER BY month), 0) * 100, 2
+    ) AS growth_percent
+FROM monthly_revenue;
