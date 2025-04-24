@@ -51,3 +51,5 @@ SELECT u.user_id, u.name, u.email
 FROM users u
 LEFT JOIN orders o ON u.user_id = o.user_id
 WHERE o.order_id IS NULL;
+
+-- EXPERT
