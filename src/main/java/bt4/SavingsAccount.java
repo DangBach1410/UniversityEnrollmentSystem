@@ -1,7 +1,7 @@
 package bt4;
 
 class SavingsAccount extends BankAccount {
-    private static final double INTEREST_RATE = 0.03;
+    private static final double interest_rate = 0.03;
 
     public SavingsAccount(String accountNumber, String ownerName, double balance) {
         super(accountNumber, ownerName, balance);
@@ -9,7 +9,7 @@ class SavingsAccount extends BankAccount {
 
     @Override
     public double calculateInterest() {
-        return balance * INTEREST_RATE;
+        return balance * interest_rate;
     }
 
     @Override

@@ -1,7 +1,7 @@
 package bt4;
 
 class CheckingAccount extends BankAccount {
-    private static final double WITHDRAW_LIMIT = 1000.0;
+    private static final double withdraw_limit = 1000.0;
 
     public CheckingAccount(String accountNumber, String ownerName, double balance) {
         super(accountNumber, ownerName, balance);
@@ -9,7 +9,7 @@ class CheckingAccount extends BankAccount {
 
     @Override
     public void withdraw(double amount) {
-        if (amount <= WITHDRAW_LIMIT && amount <= balance) {
+        if (amount <= withdraw_limit && amount <= balance) {
             balance -= amount;
             log("Rút " + amount + " từ tài khoản " + accountNumber);
         } else {
